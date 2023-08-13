@@ -1,31 +1,109 @@
+# %% [main.py]
+# # INDEX
+# 
+# + importing Libraries
+# + Reading the data
+# + Data Exploration
+# + Data Cleaning
+# + Data Visualization
+# + Fit the vectorizer to the data
+# + Model Applying and Fitting 
+# + Prediction
+# + Accuracy Score: 80.9 %
+# + Extracting Output as CSV File
+
+# %% [markdown]
+# ## Importing Libraries
+
 # %%
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import train_test_split
+
+# %% [markdown]
+# ## Reading the data
+
+# %% [markdown]
+# ##### Training data
 
 # %%
 train_data=pd.read_csv("data/train.csv")
 
+# %% [markdown]
+# ##### Testing data
+
+# %%
 test_data=pd.read_csv("data/test.csv")
 
+# %% [markdown]
+# ## Data Exploration
 
+# %% [markdown]
+# ##### Training data
+
+# %%
+print(train_data.shape)
+train_data.head()
+
+# %%
+print(train_data.columns)
+
+# %%
+print(f'Maximum Loan Amount: Rs {train_data["LoanAmount"].max()} (in thousands)')
+print(f'Minimum Loan Amount: Rs {train_data["LoanAmount"].min()} (in thousands)')
+
+# %%
+print(f'Maximum Income: Rs {train_data["ApplicantIncome"].max()}')
+print(f'Minimum Income: Rs {train_data["ApplicantIncome"].min()}')
 
 # %%
 train_data.describe()
 
 # %%
+train_data.info()
 
+# %% [markdown]
+# ##### Testing data
 
 # %%
-train_data.isna().values.any()
+print(test_data.shape)
+test_data.head()
 
+# %%
+print(test_data.columns)
+
+# %%
+print(f'Maximum Loan Amount: Rs {test_data["LoanAmount"].max()} (in thousands)')
+print(f'Minimum Loan Amount: Rs {test_data["LoanAmount"].min()} (in thousands)')
+
+# %%
+print(f'Maximum Income: Rs {test_data["ApplicantIncome"].max()}')
+print(f'Minimum Income: Rs {test_data["ApplicantIncome"].min()}')
+
+# %%
+test_data.describe()
+
+# %%
+test_data.info()
+
+# %% [markdown]
+# ## Data Cleaning
+
+# %% [markdown]
+# ### Check for missing values
+
+# %%
+print(f'Missing values for Training data?: {train_data.isna().values.any()}')
+print(f'Missing values for Testing data?: {test_data.isna().values.any()}')
 
 # %%
 train_data.isna().sum()
 
+# %%
+test_data.isna().sum()
+
+# %% [markdown]
+# ### Removing missing values
 
 # %%
 train_data.Gender.fillna(train_data.Gender.mode()[0],inplace=True)
@@ -35,7 +113,15 @@ train_data.LoanAmount.fillna(train_data.LoanAmount.mode()[0],inplace=True)
 train_data.Loan_Amount_Term.fillna(train_data.Loan_Amount_Term.mode()[0],inplace=True)
 train_data.Credit_History.fillna(train_data.Credit_History.mode()[0],inplace=True)
 train_data.Married.fillna("No",inplace=True)
-train_data.duplicated().values.any()
+
+# %% [markdown]
+# ### Check for Duplicate Values
+
+# %%
+print(f'Duplicated values for Training data?: {train_data.duplicated().values.any()}')
+
+# %% [markdown]
+# ## Data Visualization
 
 # %%
 gen_dt=train_data.Gender.value_counts()
@@ -59,10 +145,16 @@ train_data.head(5)
 # %%
 temp = train_data['Credit_History'].value_counts(ascending = True)
 fig=px.bar(temp,x=temp.index,y=temp.values,color=temp.index)
-fig.update_xaxes(title_text="Credit")
+fig.update_xaxes(title_text="Credit Points")
 fig.update_yaxes(title_text="No. of Applicants")
 fig.update_layout(coloraxis_showscale=False)
 fig.show()
+
+# %% [markdown]
+# ## Fit the vectorizer to the data
+
+# %% [markdown]
+# ##### Training data
 
 # %%
 from sklearn.preprocessing import LabelEncoder
@@ -76,13 +168,8 @@ for i in var_mod:
 train_data.head() 
 
 
-# %%
-X = train_data[['Credit_History','Gender','Married','Education']]
-y = train_data['Loan_Status']
-
-# %%
-trained_pred=model.predict(X)
-
+# %% [markdown]
+# ##### Testing data
 
 # %%
 var_mod = ['Gender','Married','Dependents','Education','Self_Employed','Property_Area']
@@ -93,14 +180,45 @@ for i in var_mod:
     test_data[i] = le.fit_transform(test_data[i])
 test_data.head() 
 
-# %%
+# %% [markdown]
+# ## Model Applying and Fitting 
 
+# %%
+X = train_data[['Credit_History','Gender','Married','Education']]
+y = train_data['Loan_Status']
 X_test=test_data[['Credit_History','Gender','Married','Education']]
 
 # %%
-test_pred=model.predict(X_test)
-test_pred=pd.Series(test_pred)
+model = DecisionTreeClassifier()
+model.fit(X,y)
 
+# %% [markdown]
+# ## Prediction
+
+# %% [markdown]
+# ##### Training data
+
+# %%
+model.predict(X)
+
+# %% [markdown]
+# ##### Testing data
+
+# %%
+test_pred=model.predict(X_test)
+test_pred
+
+# %% [markdown]
+# ## Accuracy Score: 80.9 % 
+
+# %%
+model.score(X,y)*100
+
+# %% [markdown]
+# ## Extracting output as CSV File
+
+# %%
+test_pred=pd.Series(test_pred)
 
 # %%
 test_data["Loan_Status"]=test_pred
